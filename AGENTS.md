@@ -1,5 +1,9 @@
 # AGENTS.md
 
+## Agent V1 downstream overlay
+
+This repository is the Agent V1 downstream of OpenClaw. Before project work, read `PROJECT.md` and `docs/project/{CONTEXT,STATE,GOVERNANCE,ARCHITECTURE}.md`, then the nearest scoped `AGENTS.md`. OpenClaw core ownership and security rules remain authoritative; project rules may narrow them but never weaken them. Project-specific capabilities belong in `extensions/agent-v1/` or another supported plugin/skill surface before any core change.
+
 ## Choose good compromises
 
 Design trades correctness against complexity and performance. Choose deliberately; never maximize one axis at others' expense.

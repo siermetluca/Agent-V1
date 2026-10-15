@@ -1,0 +1,15 @@
+{
+  "id": "agent-v1",
+  "categories": ["agent-orchestration"],
+  "name": "Agent V1",
+  "description": "Downstream capability layer for local-first Agent V1 domains.",
+  "activation": {
+    "onStartup": true
+  },
+  "enabledByDefault": false,
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}

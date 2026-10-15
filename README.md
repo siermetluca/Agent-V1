@@ -1,5 +1,7 @@
 # OpenClaw 🦞 — Your assistant, on your devices, in your chats
 
+> **Agent V1 downstream:** this repository is based on OpenClaw and preserves its core architecture. Project-specific context, governance, state and extension rules start in [`PROJECT.md`](PROJECT.md). Contributions should extend OpenClaw through supported plugin/skill/tool boundaries before modifying core.
+
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/openclaw/openclaw/main/docs/assets/openclaw-banner-light.png">
