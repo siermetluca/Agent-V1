@@ -18,7 +18,7 @@ import { renderChat } from "./chat-view-render.test-support.ts";
 import { createTestTranscript } from "./chat-view.test-helpers.ts";
 import type { ChatProps } from "./chat-view.tsx";
 import { renderGroupedMessage } from "./components/chat-message-bubble.ts";
-import { prepareChatMessageRender } from "./components/chat-message-markdown.ts";
+import { prepareChatMessageRender } from "./components/chat-message-markdown-view.tsx";
 import "../../plugins/control-ui-view.solid.tsx";
 import "../../plugins/control-ui-contributions.solid.tsx";
 import { threadProps } from "./components/chat-transcript.test-support.ts";

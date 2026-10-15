@@ -3,7 +3,7 @@ import type { AgentsListResult, SessionsListResult } from "../../../api/types.ts
 import { renderAgentIdentityAvatar } from "../../../components/identity-avatar-view.ts";
 import { renderKbd } from "../../../components/kbd.ts";
 import { t } from "../../../i18n/index.ts";
-import "../../../components/openclaw-mascot.ts";
+import "../../../components/openclaw-mascot.tsx";
 import { registerCommandPaletteEnglish } from "../../../i18n/locales/en-command-palette.ts";
 import { resolveAgentTextAvatar } from "../../../lib/agents/display.ts";
 import {
