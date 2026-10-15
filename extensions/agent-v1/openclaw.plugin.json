@@ -1,15 +1,28 @@
 {
   "id": "agent-v1",
-  "categories": ["agent-orchestration"],
   "name": "Agent V1",
   "description": "Downstream capability layer for local-first Agent V1 domains.",
+  "configSchema": {
+    "type": "object",
+    "properties": {},
+    "additionalProperties": false
+  },
+  "version": "0.1.0",
   "activation": {
     "onStartup": true
   },
-  "enabledByDefault": false,
-  "configSchema": {
-    "type": "object",
-    "additionalProperties": false,
-    "properties": {}
+  "contracts": {
+    "tools": [
+      "agent_v1_gmail_search",
+      "agent_v1_gmail_get_metadata"
+    ]
+  },
+  "toolMetadata": {
+    "agent_v1_gmail_search": {
+      "optional": true
+    },
+    "agent_v1_gmail_get_metadata": {
+      "optional": true
+    }
   }
 }
