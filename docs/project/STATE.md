@@ -47,3 +47,11 @@ Lo stato runtime dell'agente NON viene salvato in file YAML/JSON di progetto. De
 - [ ] definizione del primo routing local/cloud.
 
 Runtime isolato: `/Users/gianlucatreppete/Seshix/developed/.agent-v1-openclaw-state`.
+
+## Ambiente macOS
+
+- `Agent-V1.app` installata in `/Applications` dalla release ufficiale firmata OpenClaw 2026.10.3 arm64.
+- macOS indicizza il display name come `Agent-V1`.
+- Firma bundle verificata con `codesign --verify --deep --strict`.
+- Gateway verificato unico su `127.0.0.1:18789`; Control UI HTTP 200.
+- Xcode completo non e installato; il fork non viene quindi compilato come app Swift nativa in questa fase. La CLI/Gateway resta eseguita dal checkout canonico.
