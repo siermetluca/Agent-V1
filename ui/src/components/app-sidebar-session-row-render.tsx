@@ -118,6 +118,9 @@ function renderRecentSessionRow(params: RecentSessionParams) {
       : hostValue.sidebarMenus.sessionMenu?.session.key === sessionValue.key;
   });
   const color = createMemo(() => normalizeSessionColorValue(session().color ?? ""));
+  const archived = createMemo(() => session().archived === true);
+  const pinnable = createMemo(() => session().pinnable);
+  const hasChildren = createMemo(() => session().childSessionKeys.length > 0);
   const rowClass = createMemo(() => {
     const teamValue = team();
     const colorValue = color();
@@ -206,7 +209,7 @@ function renderRecentSessionRow(params: RecentSessionParams) {
         rowElement = element;
       }}
       class={rowClass()}
-      style={color() ? `--session-color: var(--session-color-${color()})` : undefined}
+      style={{ "--session-color": color() ? `var(--session-color-${color()})` : undefined }}
       data-session-key={session().key}
       data-catalog-session-key={display()?.catalogIdentityKey ?? undefined}
       role={listItem() ? "listitem" : undefined}
@@ -260,7 +263,7 @@ function renderRecentSessionRow(params: RecentSessionParams) {
           </span>
         </span>
       </a>
-      {session().childSessionKeys.length > 0 ? (
+      <Show when={hasChildren()}>
         <button
           class={`sidebar-child-session-toggle ${!team() && session().runningChildCount > 0 ? "sidebar-child-session-toggle--running" : !team() && session().failedChildCount > 0 ? "sidebar-child-session-toggle--failed" : ""}`}
           type="button"
@@ -283,7 +286,7 @@ function renderRecentSessionRow(params: RecentSessionParams) {
           onClick={() => host().toggleSessionChildren(session())}
         >
           <span class="sidebar-child-session-toggle__icon" aria-hidden="true">
-            {childrenExpanded() ? <Icon name="chevronDown" /> : <Icon name="chevronRight" />}
+            <Icon name={childrenExpanded() ? "chevronDown" : "chevronRight"} />
           </span>
           {team() ? undefined : (
             <span class="sidebar-child-session-toggle__count">
@@ -291,10 +294,10 @@ function renderRecentSessionRow(params: RecentSessionParams) {
             </span>
           )}
         </button>
-      ) : undefined}
+      </Show>
       <span class="sidebar-recent-session__aside session-row-aside">
         <span class="session-row-actions">
-          {!session().pinnable ? undefined : (
+          <Show when={pinnable()}>
             <button
               class="session-action session-action--pin"
               data-sidebar-session-pin="true"
@@ -305,7 +308,7 @@ function renderRecentSessionRow(params: RecentSessionParams) {
             >
               <Icon name="pin" />
             </button>
-          )}
+          </Show>
           <button
             class="session-action"
             data-sidebar-session-archive="true"
@@ -333,7 +336,7 @@ function renderRecentSessionRow(params: RecentSessionParams) {
               }
             }}
           >
-            {session().archived ? <Icon name="archiveRestore" /> : <Icon name="archive" />}
+            <Icon name={archived() ? "archiveRestore" : "archive"} />
           </button>
           <button
             class="session-action session-action--touch-menu"
