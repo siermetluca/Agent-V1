@@ -2,8 +2,11 @@
   "name": "@agent-v1/core",
   "version": "0.1.0",
   "private": true,
-  "description": "Agent V1 downstream capability layer for OpenClaw",
   "type": "module",
+  "description": "Agent V1 downstream capability layer for OpenClaw",
+  "dependencies": {
+    "typebox": "1.3.36"
+  },
   "devDependencies": {
     "@openclaw/plugin-sdk": "workspace:*"
   },
