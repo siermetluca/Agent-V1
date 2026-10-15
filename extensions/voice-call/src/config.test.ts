@@ -175,11 +175,13 @@ describe("validateProviderConfig", () => {
         process.env.NGROK_AUTHTOKEN = "   ";
         process.env.NGROK_DOMAIN = "   ";
 
-        const config = resolveVoiceCallConfig({
-          ...createBaseConfig(provider),
-          fromNumber: undefined,
-          tunnel: { provider: "ngrok" },
-        });
+        const config = resolveVoiceCallConfig(
+          normalizeVoiceCallConfig({
+            ...createBaseConfig(provider),
+            fromNumber: undefined,
+            tunnel: { provider: "ngrok" },
+          }),
+        );
         const result = validateProviderConfig(config);
 
         expect(result.valid).toBe(false);
@@ -518,13 +520,13 @@ describe("Tailscale external HTTPS port", () => {
 
 describe("resolveVoiceCallConfig session routing", () => {
   it("enables the pre-answer stale call reaper by default", () => {
-    const config = resolveVoiceCallConfig({ enabled: true, provider: "mock" });
+    const config = normalizeVoiceCallConfig({ enabled: true, provider: "mock" });
 
     expect(config.staleCallReaperSeconds).toBe(120);
   });
 
   it("keeps voice sessions scoped by phone by default", () => {
-    const config = resolveVoiceCallConfig({ enabled: true, provider: "mock" });
+    const config = normalizeVoiceCallConfig({ enabled: true, provider: "mock" });
 
     expect(config.sessionScope).toBe("per-phone");
     expect(
@@ -537,7 +539,7 @@ describe("resolveVoiceCallConfig session routing", () => {
   });
 
   it("scopes generated voice session keys by configured agent", () => {
-    const config = resolveVoiceCallConfig({
+    const config = normalizeVoiceCallConfig({
       enabled: true,
       provider: "mock",
       agentId: "Voice",
@@ -553,7 +555,7 @@ describe("resolveVoiceCallConfig session routing", () => {
   });
 
   it("can scope voice sessions to each call", () => {
-    const config = resolveVoiceCallConfig({
+    const config = normalizeVoiceCallConfig({
       enabled: true,
       provider: "mock",
       sessionScope: "per-call",
@@ -595,7 +597,7 @@ describe("resolveVoiceCallConfig session routing", () => {
       expected: "agent:ops:main",
     },
   ])("routes main-scoped calls to $name", ({ agentId, coreSession, expected }) => {
-    const config = resolveVoiceCallConfig({
+    const config = normalizeVoiceCallConfig({
       enabled: true,
       provider: "mock",
       sessionScope: "main",
@@ -613,7 +615,7 @@ describe("resolveVoiceCallConfig session routing", () => {
   });
 
   it("lets an explicit session key override main scope", () => {
-    const config = resolveVoiceCallConfig({
+    const config = normalizeVoiceCallConfig({
       enabled: true,
       provider: "mock",
       sessionScope: "main",
@@ -630,7 +632,7 @@ describe("resolveVoiceCallConfig session routing", () => {
   });
 
   it("scopes persisted and explicit keys at the agent session boundary", () => {
-    const config = resolveVoiceCallConfig({
+    const config = normalizeVoiceCallConfig({
       enabled: true,
       provider: "mock",
       agentId: "Voice",
@@ -668,7 +670,7 @@ describe("resolveVoiceCallConfig session routing", () => {
   });
 
   it("canonicalizes raw and scoped main aliases with the core session config", () => {
-    const config = resolveVoiceCallConfig({
+    const config = normalizeVoiceCallConfig({
       enabled: true,
       provider: "mock",
       agentId: "Voice",
@@ -707,7 +709,7 @@ describe("resolveVoiceCallConfig session routing", () => {
   });
 
   it("resolves per-number inbound route overrides over global voice settings", () => {
-    const config = resolveVoiceCallConfig({
+    const config = normalizeVoiceCallConfig({
       enabled: true,
       provider: "mock",
       inboundGreeting: "Hello from global.",
@@ -750,7 +752,7 @@ describe("resolveVoiceCallConfig session routing", () => {
   });
 
   it("falls back to global voice settings when no per-number route matches", () => {
-    const config = resolveVoiceCallConfig({
+    const config = normalizeVoiceCallConfig({
       enabled: true,
       provider: "mock",
       inboundGreeting: "Hello from global.",
@@ -799,6 +801,46 @@ describe("resolveVoiceCallConfig session routing", () => {
 });
 
 describe("normalizeVoiceCallConfig", () => {
+  it("drops undefined map entries without dropping configured routes or provider secrets", () => {
+    const normalized = normalizeVoiceCallConfig({
+      numbers: {
+        "+15550001111": { inboundGreeting: "Hello from route." },
+        "+15550002222": undefined,
+      },
+      streaming: { providers: { absent: undefined, custom: { apiKey: "synthetic-token" } } },
+      realtime: { providers: { absent: undefined, custom: { model: "test-model" } } },
+    });
+
+    expect(normalized.numbers).toEqual({
+      "+15550001111": { inboundGreeting: "Hello from route." },
+    });
+    expect(normalized.streaming.providers).toEqual({ custom: { apiKey: "synthetic-token" } });
+    expect(normalized.realtime.providers).toEqual({ custom: { model: "test-model" } });
+  });
+
+  it.each([
+    { streaming: "invalid" },
+    { realtime: null },
+    { streaming: { providers: [] } },
+    { numbers: [] },
+  ])("rejects malformed config instead of replacing it with defaults: %j", (config) => {
+    expect(() => normalizeVoiceCallConfig(config)).toThrow();
+  });
+
+  it("keeps default containers owned by each normalized configuration", () => {
+    const first = normalizeVoiceCallConfig({});
+    first.realtime.fastContext.sources.push("memory");
+    first.realtime.agentContext.files.push("CUSTOM.md");
+    first.webhookSecurity.allowedHosts.push("synthetic.example");
+    first.streaming.providers.custom = { model: "test-model" };
+
+    const second = normalizeVoiceCallConfig({});
+    expect(second.realtime.fastContext.sources).toEqual(["memory", "sessions"]);
+    expect(second.realtime.agentContext.files).toEqual(["SOUL.md", "IDENTITY.md", "USER.md"]);
+    expect(second.webhookSecurity.allowedHosts).toEqual([]);
+    expect(second.streaming.providers).toEqual({});
+  });
+
   it("fills nested runtime defaults from a partial config boundary", () => {
     const normalized = normalizeVoiceCallConfig({
       enabled: true,
@@ -935,7 +977,7 @@ describe("resolveVoiceCallStreamExposurePaths", () => {
 
 describe("resolveVoiceCallConfig realtime settings", () => {
   it("preserves configured realtime instructions without env indirection", () => {
-    const resolved = resolveVoiceCallConfig({
+    const resolved = normalizeVoiceCallConfig({
       enabled: true,
       provider: "twilio",
       realtime: {
@@ -951,7 +993,7 @@ describe("resolveVoiceCallConfig realtime settings", () => {
   });
 
   it("preserves configured realtime consult overrides", () => {
-    const resolved = resolveVoiceCallConfig({
+    const resolved = normalizeVoiceCallConfig({
       enabled: true,
       provider: "mock",
       realtime: {
@@ -982,18 +1024,18 @@ describe("resolveVoiceCallConfig realtime settings", () => {
 
   it("rejects invalid realtime consult thinking levels", () => {
     expect(() =>
-      resolveVoiceCallConfig({
+      normalizeVoiceCallConfig({
         enabled: true,
         provider: "mock",
         realtime: {
           consultThinkingLevel: "turbo",
         },
-      } as never),
+      }),
     ).toThrow(/Invalid option/);
   });
 
   it("leaves responseModel unset so voice responses can inherit runtime defaults", () => {
-    const resolved = resolveVoiceCallConfig({
+    const resolved = normalizeVoiceCallConfig({
       enabled: true,
       provider: "mock",
     });
