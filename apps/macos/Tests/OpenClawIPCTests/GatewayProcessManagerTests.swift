@@ -965,7 +965,9 @@ struct GatewayProcessManagerTests {
                 #expect(manager.retainedServiceCLI?.usesGeneratedEnvironment == true)
                 #expect(manager.retainedServiceCLI?.hadRuntimePin == true)
             }
-            #expect(GatewayLaunchAgentManager.testingDaemonCommandCallsSnapshot().isEmpty)
+            #expect(GatewayLaunchAgentManager.testingDaemonCommandCallsSnapshot() == [
+                ["status", "--runtime-intent-only", "--json"],
+            ])
             let resumed = GatewayProcessManager()
             #expect(await resumed.enableLaunchAgentIfNeeded(port: 29871).installed)
             let command = try #require(GatewayLaunchAgentManager.testingResolvedDaemonCommandsSnapshot()
@@ -1232,7 +1234,10 @@ struct GatewayProcessManagerTests {
             finishResolution.open()
             await manager.waitForPendingLaunchAgentDisable()
             #expect(manager.lastFailureReason == "operator changed the service")
-            #expect(GatewayLaunchAgentManager.testingDaemonCommandCallsSnapshot().isEmpty)
+            #expect(GatewayLaunchAgentManager.testingDaemonCommandCallsSnapshot() == [
+                ["status", "--runtime-intent-only", "--json"],
+                ["status", "--runtime-intent-only", "--json"],
+            ])
         }
     }
 
@@ -1716,7 +1721,11 @@ struct GatewayProcessManagerTests {
                 _ = await manager.enableLaunchAgentIfNeeded(port: port).error
 
                 let calls = GatewayLaunchAgentManager.testingDaemonCommandCallsSnapshot()
-                #expect(calls.map(\.first) == ["uninstall", "status", "install"])
+                #expect(Array(calls.prefix(2)) == [
+                    ["status", "--runtime-intent-only", "--json"],
+                    ["status", "--runtime-intent-only", "--json"],
+                ])
+                #expect(calls.dropFirst(2).map(\.first) == ["uninstall", "status", "install"])
             })
     }
 
