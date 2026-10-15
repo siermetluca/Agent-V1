@@ -9,7 +9,7 @@
 - Il Plugin SDK è il boundary supportato per le estensioni; un plugin downstream non deve importare internals `src/**`.
 - OpenClaw supporta SQLite e PostgreSQL come database engine.
 - Le preferenze modello del progetto sono OpenRouter per cloud e modelli locali per esecuzione locale.
-- Sul Mac Studio è installato Ollama ed è stato verificato `qwen3-vl:8b`; il modello ha risposto correttamente a uno smoke test locale.
+- Sul Mac Studio è installato Ollama; `ollama/qwen3-vl:8b` è stato verificato attraverso il provider OpenClaw con input `text+image`, contesto rilevato `33k/262k` e smoke test `OLLAMA_OK`.
 - Il sistema deve sostenere retrieval/RAG, contesto, stato, task semplici e complessi, OCR e vision.
 
 ## DECISION
@@ -19,7 +19,7 @@
 - Runtime state, session lifecycle, autorizzazioni e storage restano sotto gli owner OpenClaw esistenti.
 - Le nostre funzioni di dominio partono da `extensions/agent-v1/` e da skill/tool collegati.
 - La strategia modello è local-first con OpenRouter disponibile per escalation; il routing preciso deve essere validato prima di essere reso automatico.
-- Nessuna chiave API o credenziale viene committata.
+- Nessuna chiave API o credenziale viene committata. Lo stato runtime OpenClaw è isolato fuori dalla repository in `/Users/gianlucatreppete/Seshix/developed/.agent-v1-openclaw-state`.
 - Ogni task entra con contesto pertinente e produce un aggiornamento di stato solo dopo validazione.
 
 ## UNKNOWN
